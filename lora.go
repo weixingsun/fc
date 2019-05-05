@@ -60,10 +60,12 @@ func (l *Lora) listen(f f_str) {
         } else {
             buf = buf[:n]
             a := string(buf)
-            //fmt.Println("recv(",  n, ") ",a)
-            if a == "\n" {
-                //fmt.Println("recv :",  sall)
-                //fmt.Println("sbuf=[", sbuf,"] a=", a)
+	    if n > 1 {
+                //fmt.Println("recv(",  n, ") ",a)
+		f(a)
+		sbuf=""
+            }else if a == "\n" {
+                //fmt.Println("recv :",  sbuf)
                 f(sbuf)
                 sbuf=""
             } else {

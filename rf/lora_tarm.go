@@ -6,7 +6,7 @@ import (
     "flag"
     "time"
     "strings"
-    "./serial_tarm"
+    "../serial"
 )
 type fn func(string)
 //type RF interface {
