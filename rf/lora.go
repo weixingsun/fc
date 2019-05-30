@@ -3,7 +3,7 @@ import (
     "fmt"
     "io"
     "log"
-    "github.com/jacobsa/go-serial/serial"
+    "./serial"
     //"flag"
     //"os"
     //"encoding/hex"
