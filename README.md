@@ -1,4 +1,4 @@
-# This project may be consideredly dangerous
+# This project may be considerably dangerous
 # If you do not have special domain skills for computer science
 
 ## Overview
