@@ -3,7 +3,7 @@ import (
     "fmt"
     "io"
     "log"
-    "./serial"
+    "./serial_jacobsa"
     //"flag"
     //"os"
     //"encoding/hex"
@@ -14,8 +14,6 @@ type fn func(string)
 //    listen(fn)
 //}
 type Lora struct {
-    //send() void
-    //listen() void
     dev, encoder, addr string
     baudrate uint
     //oo       serial.OpenOptions
@@ -69,12 +67,14 @@ func (l Lora) sprint(msg string) {
 }
 func main() {
     l := NewLora(
-        "/dev/UART_CP2102",
+        //"/dev/UART_CP2102",
+        "/dev/tty.usbserial-1420",  // recv CH340G
+        //"/dev/tty.SLAB_USBtoUART",  // send CP2102
         9600,
         "utf-8",
         "FFFF",
     )
     //defer lora.port.Close()  //when to close ?
     l.listen(l.sprint)
-    //l.send("haha")
+    //l.send("123456789")
 }
