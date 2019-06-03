@@ -9,7 +9,6 @@ import (
 	//"regexp"
 	//"strconv"
 )
-//////////////////////////////////////////////////////////////
 type FC struct {
 	cfg *Cfg
 	lora *Lora
@@ -40,10 +39,6 @@ func (fc *FC) initRF() *Lora {
         "utf-8",
         "FFFF",
     )
-    //l.listen(l.sprint)
-    //l.send(*msg)
-    //defer lora.port.Close()  //when to close ?
-    //return l
 }
 func (fc *FC) initCFG() *Cfg {
     p := "fc.ini"
@@ -59,14 +54,12 @@ func (fc *FC) initMsg() *FC {
         "level":   fc.level,
         "shutdown":nil,
     }
-    //fmt.Println(cmds)
     return fc
 }
 func (fc *FC) proc_cmd(cmd string) {
     cmd = strings.TrimRight(cmd, "\r\n")
     f := cmd
     p := ""
-    //fmt.Println("fc.proc_cmd: f="+f+ " p="+ p)
     if strings.Contains(cmd, " ") {
         arr := strings.Fields(cmd)
         f=arr[0]
@@ -81,7 +74,6 @@ func (fc *FC) proc_cmd(cmd string) {
     }
 }
 func (fc *FC) unknown(s string) {
-    fmt.Println("<<<<<<<<<<<<<<<<<<< unknown cmd >>>>>>>>>>>>>>>>>>")
     fc.lora.send("unknown cmd")
 }
 func (fc *FC) takeoff(s string) {
@@ -92,8 +84,8 @@ func (fc *FC) level(l string) {
     fc.cfg.seta("level",l)
     fc.lora.send("level "+l)
 }
-/////////////////////////////////
 func main() {
-	s := NewFC()
-	s.lora.listen(s.proc_cmd);
+    f := NewFC()
+    f.lora.listen(f.proc_cmd);
+    defer f.lora.port.Close()
 }
