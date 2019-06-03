@@ -3,20 +3,17 @@ import (
     "fmt"
     "io"
     "log"
-    "flag"
     "time"
-    "strings"
-    "./serial_tarm"
+    "./serial"
+    //"flag"
+    //"strings"
 )
-type fn func(string)
-//type RF interface {
-//    send(string)
-//    listen(fn)
-//}
+//var sbuf string
 type Lora struct {
     dev, encoder, addr string
     baudrate int
     port     io.ReadWriteCloser
+    //sbuf     string
 }
 
 func NewLora(dev string,baud int,addr string,encoder string)*Lora{
@@ -40,14 +37,16 @@ func NewLora(dev string,baud int,addr string,encoder string)*Lora{
 
 func (l *Lora) send(msg string) {
     b := []byte(msg+"\n")
-    n,err := l.port.Write(b)
-    if err != nil {
-        fmt.Println("Error sending from serial port: ", err)
-    }
-    fmt.Println("send: (", n, ") ", msg)
+    l.port.Write(b)
+    //n,err := l.port.Write(b)
+    //if err != nil {
+    //    fmt.Println("Error sending from serial port: ", err)
+    //}
+    //fmt.Printf("send %v in %v bytes", msg, n)
 }
 
-func (l *Lora) listen(f fn) {
+func (l *Lora) listen(f f_str) {
+    sbuf := ""
     for {
         buf := make([]byte, 32)
         n, err := l.port.Read(buf)
@@ -56,9 +55,18 @@ func (l *Lora) listen(f fn) {
                 fmt.Println("Error reading from serial port: ", err, io.EOF)
             }
         } else {
-            //fmt.Println("recv in bytes:",  n)
             buf = buf[:n]
-            f(string(buf))
+            a := string(buf)
+            //fmt.Println("recv(",  n, ") ",a)
+            if a == "\n" {
+                //fmt.Println("recv :",  sall)
+                //fmt.Println("sbuf=[", sbuf,"] a=", a)
+                f(sbuf)
+                sbuf=""
+            } else {
+                //fmt.Println("sbuf=[", sbuf,"] a=", a)
+                sbuf += a
+            }
         }
     }
 }
@@ -66,6 +74,7 @@ func (l *Lora) listen(f fn) {
 func (l Lora) sprint(msg string) {
     fmt.Print(msg)
 }
+/*
 func main() {
     dev  := flag.String("d", "/dev/ttyUSB0", "serial device")
     baud := flag.Int("b", 115200, "serial device")
@@ -85,3 +94,4 @@ func main() {
     }
     //defer lora.port.Close()  //when to close ?
 }
+*/

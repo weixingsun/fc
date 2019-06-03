@@ -1,1 +1,1 @@
-bin/takeoff -d /dev/UART_CF -a
+./fc_go -d /dev/UART_CF -a

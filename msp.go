@@ -10,7 +10,7 @@ import (
 	"net"
 	"bufio"
 	"time"
-	"math/rand"
+	//"math/rand"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 	msp_NAME        = 10
 
 	msp_SET_RAW_RC = 200
-  msp_RC         = 105
+	msp_RC         = 105
 
 	rx_START = 1400
 	rx_RAND  =  200
@@ -177,7 +177,7 @@ func NewMSPSerial(dd DevDescription) *MSPSerial {
 	}
 	return &MSPSerial{klass: dd.klass, p: p}
 }
-
+/////////////////////////////////////////////////////////
 func NewMSPTCP(dd DevDescription) *MSPSerial {
 	var conn net.Conn
 	remote := fmt.Sprintf("%s:%d", dd.name, dd.param)
@@ -219,7 +219,7 @@ func NewMSPUDP(dd DevDescription) *MSPSerial {
 	}
 	return &MSPSerial{klass: dd.klass, conn: conn, reader : reader}
 }
-
+///////////////////////////////////////////////////////////////////////////
 func (m *MSPSerial) Send_msp(cmd byte, payload []byte) {
 	buf := encode_msp(cmd, payload)
 	m.write(buf)
@@ -235,7 +235,7 @@ func MSPInit(dd DevDescription) *MSPSerial {
 		m = NewMSPTCP(dd)
 	case DevClass_UDP:
 		m = NewMSPUDP(dd)
-   default:
+	default:
 		fmt.Fprintln(os.Stderr, "Unsupported device")
 		os.Exit(1)
 	}
@@ -292,104 +292,73 @@ func MSPInit(dd DevDescription) *MSPSerial {
 	}
 	return m
 }
-
-func serialise_rx(phase int8) ([]byte) {
+///////////////////////////////////////////////////////////////////////
+func (m *MSPSerial) send_cmds(cmds []uint16) {
+	//fmt.Println("MSP.send_cmds:",cmds)
 	buf := make([]byte, 16)
-	switch phase {
-	case 0:
-		n := rand.Intn(rx_RAND)
-		binary.LittleEndian.PutUint16(buf[0:2], uint16(rx_START+n))
-		n = rand.Intn(rx_RAND)
-		binary.LittleEndian.PutUint16(buf[2:4], uint16(rx_START+n))
-		n = rand.Intn(rx_RAND)
-		binary.LittleEndian.PutUint16(buf[4:6], uint16(rx_START+n))
-		n = rand.Intn(rx_RAND)
-		binary.LittleEndian.PutUint16(buf[6:8], uint16(rx_START+n))
-	case 1:
-		binary.LittleEndian.PutUint16(buf[0:2], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[2:4], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[4:6], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[6:8], uint16(1000))
-	case 2:
-		binary.LittleEndian.PutUint16(buf[0:2], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[2:4], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[4:6], uint16(2000))
-		binary.LittleEndian.PutUint16(buf[6:8], uint16(1000))
-	case 3:
-		binary.LittleEndian.PutUint16(buf[0:2], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[2:4], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[4:6], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[6:8], uint16(1100))
-	case 4:
-		binary.LittleEndian.PutUint16(buf[0:2], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[2:4], uint16(1500))
-		binary.LittleEndian.PutUint16(buf[4:6], uint16(1000))
-		binary.LittleEndian.PutUint16(buf[6:8], uint16(1000))
-	}
-	binary.LittleEndian.PutUint16(buf[8:10], uint16(1017))
-	binary.LittleEndian.PutUint16(buf[10:12], uint16(1442))
-	binary.LittleEndian.PutUint16(buf[12:14], uint16(1605))
-	binary.LittleEndian.PutUint16(buf[14:16], uint16(1669))
-	return buf
+	binary.LittleEndian.PutUint16(buf[0:2], uint16(cmds[0]))
+	binary.LittleEndian.PutUint16(buf[2:4], uint16(cmds[1]))
+	binary.LittleEndian.PutUint16(buf[4:6], uint16(cmds[2]))
+	binary.LittleEndian.PutUint16(buf[6:8], uint16(cmds[3]))
+	binary.LittleEndian.PutUint16(buf[8:10],  uint16(cmds[4]))
+	binary.LittleEndian.PutUint16(buf[10:12], uint16(cmds[5]))
+	binary.LittleEndian.PutUint16(buf[12:14], uint16(cmds[6]))
+	binary.LittleEndian.PutUint16(buf[14:16], uint16(cmds[7]))
+	//return buf
+	m.Send_msp(msp_SET_RAW_RC, buf)
 }
 
-
-func deserialise_rx(b []byte) ([]int16) {
-	buf := make([]int16, 8)
-	for j:= 0; j < 8; j++ {
-		n := j*2;
-		buf[j] = int16(binary.LittleEndian.Uint16(b[n:n+2]))
-	}
-	return buf
-}
-
-func (m *MSPSerial) test_rx(arm bool) () {
+func (m *MSPSerial) arm() {
+	DEFAULT_CMD := []uint16 {1500, 1500, 1500, 1000, 1000, 1000, 1000, 1000}
+	ARM_CMD     := []uint16 {1500, 1500, 2000, 1000, 1000, 1000, 1000, 1000}
 	cnt := 0
-	t1  := 100 //prepare 10s to arm
-	t2  := 100 //flight 10s
-	var phase = int8(0)
-	for ;; {
-		if arm {
-			if cnt <= t1 || cnt > (t1+t2+10) {
-				phase = 1
-			} else if cnt > (t1+t2) {
-				phase = 4
-			} else if cnt > (t1+10) {
-				phase = 3
-			} else if cnt > t1 {
-				phase = 2
-			} else {
-				phase = 0
-			}
-		}
-		tdata := serialise_rx(phase);
-		m.Send_msp(msp_SET_RAW_RC, tdata)
-		_, _, err := m.Read_cmd(msp_SET_RAW_RC)
-		if err == nil {
-			m.Send_msp(msp_RC,nil)
-			_, payload, err := m.Read_cmd(msp_RC)
-			if err == nil {
-				txdata := deserialise_rx(tdata)
-				fmt.Printf("Tx: %v\n", txdata)
-				rxdata := deserialise_rx(payload)
-				fmt.Printf("Rx: %v", rxdata)
-				switch phase {
-				case 0:
-					fmt.Printf("\n");
-				case 1:
-					fmt.Printf(" Quiescent\n");
-				case 2:
-					fmt.Printf(" Arming\n");
-				case 3:
-					fmt.Printf(" Min throttle\n");
-				case 4:
-					fmt.Printf(" Dis-arming\n");
-				}
-			} else {
-			}
-		} else {
-		}
+	for cnt < 50 {
+		m.send_cmds(DEFAULT_CMD)
+		time.Sleep(100 * time.Millisecond)
+		cnt ++
+	}
+	cnt = 0
+	for cnt < 11 {
+		m.send_cmds(ARM_CMD)
 		time.Sleep(100 * time.Millisecond)
 		cnt++
 	}
+}
+
+func (m *MSPSerial) disarm() {
+	DISARM_CMD  := []uint16 {1500, 1500, 1000, 1000, 1000, 1000, 1000, 1000}
+	cnt := 0
+	for cnt < 10 {
+		m.send_cmds(DISARM_CMD)
+		time.Sleep(100 * time.Millisecond)
+		cnt ++
+	}
+}
+
+func (m *MSPSerial) hover() {
+	HOVER_CMD  := []uint16 {1500, 1500, 1500, 1200, 1000, 1000, 1000, 1000}
+	cnt := 0
+	for cnt < 100 {
+		m.send_cmds(HOVER_CMD)
+		time.Sleep(100 * time.Millisecond)
+		cnt ++
+	}
+}
+
+func (m *MSPSerial) takeoff() {
+	fmt.Println("arm")
+	m.arm()
+	fmt.Println("hover")
+	m.hover()
+	fmt.Println("disarm")
+	m.disarm()
+}
+
+func deserialise_rx(b []byte) ([]int16) {
+        buf := make([]int16, 8)
+        for j:= 0; j < 8; j++ {
+                n := j*2;
+                buf[j] = int16(binary.LittleEndian.Uint16(b[n:n+2]))
+        }
+        return buf
 }
