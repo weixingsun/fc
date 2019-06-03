@@ -63,21 +63,30 @@ func (fc *FC) initMsg() *FC {
     return fc
 }
 func (fc *FC) proc_cmd(cmd string) {
-    //fmt.Println("fc.proc_cmd: ", cmd)
+    cmd = strings.TrimRight(cmd, "\r\n")
     f := cmd
     p := ""
+    //fmt.Println("fc.proc_cmd: f="+f+ " p="+ p)
     if strings.Contains(cmd, " ") {
         arr := strings.Fields(cmd)
         f=arr[0]
         p=arr[1]
     }
-    //fmt.Println(f, " ", p)
-    fc.cmds[f](p)
+    fn,found := fc.cmds[f]
+    if found {
+        fmt.Println("fc.proc_cmd: f="+f+ " p="+ p)
+        fn(p)
+    } else {
+        fc.unknown("")
+    }
+}
+func (fc *FC) unknown(s string) {
+    fmt.Println("<<<<<<<<<<<<<<<<<<< unknown cmd >>>>>>>>>>>>>>>>>>")
+    fc.lora.send("unknown cmd")
 }
 func (fc *FC) takeoff(s string) {
-    fmt.Println("fc.takeoff")
-    fc.msp.takeoff()
     fc.lora.send("takeoff")
+    fc.msp.takeoff()
 }
 func (fc *FC) level(l string) {
     fc.cfg.seta("level",l)
