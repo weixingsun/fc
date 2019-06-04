@@ -1,7 +1,9 @@
 package main
-/*import (
-	"flag"
-)*/
+import (
+        "os"
+        "log"
+        "path/filepath"
+)
 type f_str func(string)
 const (
         DevClass_NONE = iota
@@ -18,8 +20,11 @@ type DevDescription struct {
         param1 int
 }
 
-/*var (
-        baud   = flag.Int("b", 115200, "Baud rate")
-        device = flag.String("d", "", "Serial Device")
-        arm = flag.Bool("a", false, "Arm (take care now)")
-)*/
+func current_dir() string {
+    //dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    ex, err := os.Executable()
+    if err != nil {
+       log.Fatal(err)
+    }
+    return filepath.Dir(ex)
+}

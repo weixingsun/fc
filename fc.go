@@ -2,10 +2,10 @@ package main
 
 import (
 	//"fmt"
-	"os"
-	"log"
+	//"os"
+	//"log"
 	"strings"
-	"path/filepath"
+	//"path/filepath"
 	//"flag"
 	//"regexp"
 	//"strconv"
@@ -43,10 +43,7 @@ func (fc *FC) initRF() *Lora {
     )
 }
 func (fc *FC) initCFG() *Cfg {
-    dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-    if err != nil {
-       log.Fatal(err)
-    }
+    dir := current_dir()
     p := dir+"/fc.ini"
     c := NewCfg(p)
     fc.level_throttle = c.geti("level")
