@@ -14,6 +14,8 @@ type FC struct {
 	lora *Lora
 	msp  *MSPSerial
 	cmds map[string]f_str
+        level_throttle uint16
+        hover_time uint16
 }
 
 func NewFC() *FC {
@@ -42,7 +44,10 @@ func (fc *FC) initRF() *Lora {
 }
 func (fc *FC) initCFG() *Cfg {
     p := "fc.ini"
-    return NewCfg(p)
+    c := NewCfg(p)
+    fc.level_throttle = c.geti("level")
+    fc.hover_time     = c.geti("hover")
+    return c
 }
 func (fc *FC) initMsg() *FC {
     fc.cmds = map[string]f_str{
@@ -67,7 +72,7 @@ func (fc *FC) proc_cmd(cmd string) {
     }
     fn,found := fc.cmds[f]
     if found {
-        fmt.Println("fc.proc_cmd: f="+f+ " p="+ p)
+        //fmt.Println("fc.proc_cmd: f="+f+ " p="+ p)
         fn(p)
     } else {
         fc.unknown("")
@@ -78,14 +83,20 @@ func (fc *FC) unknown(s string) {
 }
 func (fc *FC) takeoff(s string) {
     fc.lora.send("takeoff")
-    fc.msp.takeoff()
+    fc.msp.takeoff(fc.level_throttle, fc.hover_time)
 }
 func (fc *FC) level(l string) {
     fc.cfg.seta("level",l)
     fc.lora.send("level "+l)
 }
+func (fc *FC) hover(h string) {
+    fc.cfg.seta("hover",h)
+    fc.lora.send("hover "+h)
+}
 func main() {
     f := NewFC()
     f.lora.listen(f.proc_cmd);
-    defer f.lora.port.Close()
+    defer f.lora.close()
+    defer f.msp.close()
+    //defer f.cfg.Close()
 }

@@ -35,6 +35,8 @@ const (
 	state_CMD
 	state_DATA
 	state_CRC
+
+	LEVEL_AUX = 1500
 )
 
 type MSPSerial struct {
@@ -65,7 +67,6 @@ func encode_msp(cmd byte, payload []byte) []byte {
 	buf[5+paylen] = crc
 	return buf
 }
-
 func (m *MSPSerial) read(inp []byte) (int, error) {
 	if m.klass == DevClass_SERIAL {
 		return m.p.Read(inp)
@@ -84,6 +85,9 @@ func (m *MSPSerial) write(payload []byte) (int, error) {
 	}
 }
 
+func (m *MSPSerial) close() {
+    m.p.Close()
+}
 func (m *MSPSerial) Read_msp() (byte, []byte, error) {
 	inp := make([]byte, 1)
 	var count = byte(0)
@@ -304,7 +308,6 @@ func (m *MSPSerial) send_cmds(cmds []uint16) {
 	binary.LittleEndian.PutUint16(buf[10:12], uint16(cmds[5]))
 	binary.LittleEndian.PutUint16(buf[12:14], uint16(cmds[6]))
 	binary.LittleEndian.PutUint16(buf[14:16], uint16(cmds[7]))
-	//return buf
 	m.Send_msp(msp_SET_RAW_RC, buf)
 }
 
@@ -315,7 +318,7 @@ func (m *MSPSerial) arm() {
 	for cnt < 50 {
 		m.send_cmds(DEFAULT_CMD)
 		time.Sleep(100 * time.Millisecond)
-		cnt ++
+		cnt++
 	}
 	cnt = 0
 	for cnt < 11 {
@@ -326,39 +329,65 @@ func (m *MSPSerial) arm() {
 }
 
 func (m *MSPSerial) disarm() {
-	DISARM_CMD  := []uint16 {1500, 1500, 1000, 1000, 1000, 1000, 1000, 1000}
+	DISARM_CMD := []uint16 {1500, 1500, 1000, 1000, 1000, 1000, 1000, 1000}
 	cnt := 0
 	for cnt < 10 {
 		m.send_cmds(DISARM_CMD)
 		time.Sleep(100 * time.Millisecond)
-		cnt ++
+		cnt++
 	}
 }
-
-func (m *MSPSerial) hover() {
-	HOVER_CMD  := []uint16 {1500, 1500, 1500, 1200, 1000, 1000, 1000, 1000}
-	cnt := 0
-	for cnt < 100 {
-		m.send_cmds(HOVER_CMD)
-		time.Sleep(100 * time.Millisecond)
-		cnt ++
-	}
+func (m *MSPSerial) warm(level_throttle uint16) {
+    var cnt uint16 = 0
+    step:= uint16((level_throttle-1200)/50)
+    for cnt < 50 {
+        throttle  := 1200+cnt*step
+        //fmt.Println("throttle=",throttle," cnt=",cnt," step=",step)
+        WARM_CMD  := []uint16 {1500, 1500, 1500, throttle, LEVEL_AUX, 1000, 1000, 1000}
+        m.send_cmds(WARM_CMD)
+        time.Sleep(100 * time.Millisecond)
+        cnt++
+    }
+}
+func (m *MSPSerial) hover(throttle uint16, seconds uint16) {
+    HOVER_CMD := []uint16 {1500, 1500, 1500, throttle, LEVEL_AUX, 1000, 1000, 1000}
+    var cnt uint16 = 0
+    for cnt < seconds*10 {
+        m.send_cmds(HOVER_CMD)
+        time.Sleep(100 * time.Millisecond)
+        cnt++
+    }
 }
 
-func (m *MSPSerial) takeoff() {
-	fmt.Println("arm")
-	m.arm()
-	fmt.Println("hover")
-	m.hover()
-	fmt.Println("disarm")
-	m.disarm()
+func (m *MSPSerial) land(level_throttle uint16) {
+    var cnt uint16 = 0
+    step:= uint16((level_throttle-1300)/30)
+    for cnt < 30 {
+        throttle  := level_throttle-cnt*step
+        LAND_CMD  := []uint16 {1500, 1500, 1500, throttle, LEVEL_AUX, 1000, 1000, 1000}
+        m.send_cmds(LAND_CMD)
+        time.Sleep(100 * time.Millisecond)
+        cnt++
+    }
 }
-
+func (m *MSPSerial) takeoff(level_throttle uint16, hover_time uint16) {
+    fmt.Println("arm")
+    m.arm()
+    fmt.Println("warm")
+    m.warm(level_throttle)
+    fmt.Println("hover")
+    m.hover(level_throttle,hover_time)
+    fmt.Println("land")
+    m.land(level_throttle)
+    fmt.Println("disarm")
+    m.disarm()
+}
+/*
 func deserialise_rx(b []byte) ([]int16) {
-        buf := make([]int16, 8)
-        for j:= 0; j < 8; j++ {
-                n := j*2;
-                buf[j] = int16(binary.LittleEndian.Uint16(b[n:n+2]))
-        }
-        return buf
-}
+    buf := make([]int16, 8)
+    for j:= 0; j < 8; j++ {
+        n := j*2;
+        buf[j] = int16(binary.LittleEndian.Uint16(b[n:n+2]))
+    }
+    return buf
+}*/

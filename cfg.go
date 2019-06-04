@@ -1,6 +1,6 @@
 package main
 import (
-    "fmt"
+    //"fmt"
     "log"
     "os"
     "strconv"
@@ -23,10 +23,20 @@ func NewCfg(path string) *Cfg{
     return cfg
 }
 
-func (c *Cfg) get(k string) string {
+func (c *Cfg) geta(k string) string {
     v := c.c.Section("").Key(k).String()
-    fmt.Println("ini.get( %v ) = %v ", k, v)
+    //fmt.Println("ini.get( %v ) = %v ", k, v)
     return v
+}
+
+func (c *Cfg) geti(k string) uint16 {
+    vs := c.geta(k)
+    vi,err := strconv.Atoi(vs)
+    if err != nil {
+        log.Fatalf("Error Ini.Geti: %v", err)
+	os.Exit(1)
+    }
+    return uint16(vi)
 }
 
 func (c *Cfg) seta(k string,v string) {

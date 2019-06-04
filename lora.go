@@ -35,6 +35,9 @@ func NewLora(dev string,baud int,addr string,encoder string)*Lora{
     return lora
 }
 
+func (l *Lora) close() {
+    l.port.Close()
+}
 func (l *Lora) send(msg string) {
     b := []byte(msg+"\n")
     l.port.Write(b)
