@@ -53,10 +53,10 @@ func (fc *FC) initMsg() *FC {
     fc.cmds = map[string]f_str{
         "takeoff": fc.takeoff,
         "land":    nil,
-        "hover":   nil,
         "stop":    nil,
         "ip":      nil,
         "level":   fc.level,
+        "hover":   fc.hover,
         "shutdown":nil,
     }
     return fc
