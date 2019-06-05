@@ -29,77 +29,73 @@ func NewFC() *FC {
 }
 func (fc *FC) initMSP() *MSPSerial{
     devdesc := DevDescription{klass: DevClass_SERIAL }
-    devdesc.name = "/dev/UART_CF"
-    devdesc.param = 115200
-    //fmt.Println("MSP: ",devdesc)
+    devdesc.name = DEV_NAME_MSP
+    devdesc.param = DEV_BAUDRATE_MSP
     return MSPInit(devdesc)
 }
 func (fc *FC) initRF() *Lora {
     return NewLora(
-        "/dev/UART_LORA",
-        9600,
-        "utf-8",
-        "FFFF",
+        DEV_NAME_LORA,
+        DEV_BAUDRATE_LORA,
+        DEV_LORA_ENCODER,
+        DEV_LORA_ADDR,
     )
 }
 func (fc *FC) initCFG() *Cfg {
     dir := current_dir()
-    p := dir+"/fc.ini"
+    p := dir+FILE_CFG
     c := NewCfg(p)
-    fc.level_throttle = c.geti("level")
-    fc.hover_time     = c.geti("hover")
+    fc.level_throttle = c.geti(tag_cfg_level_throttle)
+    fc.hover_time     = c.geti(tag_cfg_hover_time)
     return c
 }
 func (fc *FC) initMsg() *FC {
     fc.cmds = map[string]f_str{
-        "takeoff": fc.takeoff,
-        "land":    nil,
-        "stop":    nil,
-        "ip":      nil,
-        "level":   fc.level,
-        "hover":   fc.hover,
-        "shutdown":nil,
+        cmd_takeoff: fc.takeoff,
+        cmd_land:    nil,
+        cmd_stop:    nil,
+        cmd_ip:      nil,
+        cmd_level:   fc.level,
+        cmd_hover:   fc.hover,
+        cmd_shutdown:nil,
     }
     return fc
 }
 func (fc *FC) proc_cmd(cmd string) {
-    cmd = strings.TrimRight(cmd, "\r\n")
+    cmd = strings.TrimRight(cmd, str_liner)
     f := cmd
-    p := ""
-    if strings.Contains(cmd, " ") {
+    p := str_empty
+    if strings.Contains(cmd, str_space) {
         arr := strings.Fields(cmd)
         f=arr[0]
         p=arr[1]
     }
     fn,found := fc.cmds[f]
     if found {
-        //fmt.Println("fc.proc_cmd found: f="+f+ " p="+ p)
         fn(p)
     } else {
-        //fmt.Println("fc.proc_cmd not found: f="+f+ " p="+ p)
-        fc.unknown("")
+        fc.unknown(str_empty)
     }
 }
 func (fc *FC) unknown(s string) {
-    fc.lora.send("unknown cmd")
+    fc.lora.send(msg_unknown)
 }
 func (fc *FC) takeoff(s string) {
-    fc.lora.send("takeoff")
+    fc.lora.send(msg_takeoff)
     fc.msp.takeoff(fc.level_throttle, fc.hover_time)
 }
 func (fc *FC) level(l string) {
-    fc.cfg.seta("level",l)
-    fc.lora.send("level "+l)
+    fc.cfg.seta(tag_cfg_level_throttle,l)
+    fc.lora.send(tag_cfg_level_throttle+str_space+l)
 }
 func (fc *FC) hover(h string) {
-    fc.cfg.seta("hover",h)
-    fc.lora.send("hover "+h)
+    fc.cfg.seta(tag_cfg_hover_time,h)
+    fc.lora.send(tag_cfg_hover_time+str_space+h)
 }
 func main() {
     f := NewFC()
-    f.lora.send("ready to flight")
+    f.lora.send(msg_ready)
     f.lora.listen(f.proc_cmd);
     defer f.lora.close()
     defer f.msp.close()
-    //defer f.cfg.Close()
 }
