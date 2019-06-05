@@ -57,7 +57,7 @@ func (fc *FC) initMsg() *FC {
         cmd_ip:      nil,
         cmd_level:   fc.level,
         cmd_hover:   fc.hover,
-        cmd_shutdown:nil,
+        cmd_shutdown:fc.shutdown,
     }
     return fc
 }
@@ -79,6 +79,10 @@ func (fc *FC) proc_cmd(cmd string) {
 }
 func (fc *FC) unknown(s string) {
     fc.lora.send(msg_unknown)
+}
+func (fc *FC) shutdown(s string) {
+    fc.lora.send(msg_shutdown)
+    os_shutdown()
 }
 func (fc *FC) takeoff(s string) {
     fc.lora.send(msg_takeoff)

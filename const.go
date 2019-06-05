@@ -1,8 +1,12 @@
 package main
 import (
+	//"bytes"
+	"fmt"
         "os"
+	"os/exec"
         "log"
         "path/filepath"
+	"strings"
 )
 const (
 	DEV_NAME_MSP  = "/dev/UART_CF"
@@ -29,9 +33,10 @@ const (
 )
 
 const (
-	msg_ready = "ready to flight"
-	msg_takeoff = "taking off"
-	msg_unknown = "unknown cmd"
+	msg_ready    = "ready to flight"
+	msg_takeoff  = "taking off"
+	msg_unknown  = "unknown cmd"
+	msg_shutdown = "shutdown"
 )
 
 const (
@@ -57,11 +62,26 @@ type DevDescription struct {
         param1 int
 }
 
+func os_shutdown() {
+    args := strings.Fields("shutdown -h now")
+    //args := strings.Fields("ls -lrt /home/sun/jbb/mlc/")
+    os_cmd(args)
+}
+func os_cmd(args []string) {
+    out, err := exec.Command(args[0], args[1], args[2]).Output()
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("cmd: %s \n",args)
+    fmt.Printf("%s \n",out)
+}
 func current_dir() string {
-    //dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
     ex, err := os.Executable()
     if err != nil {
        log.Fatal(err)
     }
     return filepath.Dir(ex)
 }
+/*func main() {
+    os_shutdown()
+}*/
