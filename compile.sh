@@ -2,7 +2,12 @@
 compile() {
   ARCH=$1
   echo "Compiling for $ARCH"
-  env GOOS=linux GOARCH=$ARCH go build -o bin/fc_$ARCH
+  if [ "$ARCH" = "arm" ]; then
+    echo "#raspberry pi zero"
+    env GOOS=linux GOARCH=$ARCH GOARM=6 go build -o bin/fc_$ARCH
+  else
+    env GOOS=linux GOARCH=$ARCH go build -o bin/fc_$ARCH
+  fi
 }
 find_arch() {
   arch=""

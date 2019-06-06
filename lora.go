@@ -41,11 +41,6 @@ func (l *Lora) close() {
 func (l *Lora) send(msg string) {
     b := []byte(msg+"\n")
     l.port.Write(b)
-    //n,err := l.port.Write(b)
-    //if err != nil {
-    //    fmt.Println("Error sending from serial port: ", err)
-    //}
-    //fmt.Printf("send %v in %v bytes", msg, n)
 }
 
 func (l *Lora) listen(f f_str) {
@@ -76,7 +71,7 @@ func (l *Lora) listen(f f_str) {
     }
 }
 
-func (l Lora) sprint(msg string) {
+func (l *Lora) sprint(msg string) {
     fmt.Print(msg)
 }
 /*
