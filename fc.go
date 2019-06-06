@@ -86,7 +86,7 @@ func (fc *FC) shutdown(s string) {
 }
 func (fc *FC) takeoff(s string) {
     fc.lora.send(msg_takeoff)
-    fc.msp.takeoff(fc.level_throttle, fc.hover_time)
+    go fc.msp.takeoff(fc.level_throttle, fc.hover_time)
 }
 func (fc *FC) level(l string) {
     fc.cfg.seta(tag_cfg_level_throttle,l)
