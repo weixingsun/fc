@@ -10,7 +10,7 @@ import (
 	"net"
 	"bufio"
 	"time"
-	//"math/rand"
+	"context"
 )
 
 const (
@@ -370,17 +370,33 @@ func (m *MSPSerial) land(level_throttle uint16) {
         cnt++
     }
 }
-func (m *MSPSerial) takeoff(level_throttle uint16, hover_time uint16) {
+func (m *MSPSerial) takeoff(ctx context.Context, level_throttle uint16, hover_time uint16) {
     fmt.Println("arm")
     m.arm()
     fmt.Println("warm")
     m.warm(level_throttle)
+    if check_cancel(ctx) {
+        return
+    }
     fmt.Println("hover")
     m.hover(level_throttle,hover_time)
+    if check_cancel(ctx) {
+        return
+    }
     fmt.Println("land")
     m.land(level_throttle)
     fmt.Println("disarm")
     m.disarm()
+}
+func check_cancel(ctx context.Context) bool{
+    select {
+        case <-ctx.Done():
+            //logg.Printf("done")
+            return true
+        default:
+            //logg.Printf("work")
+            return false
+    }
 }
 /*
 func deserialise_rx(b []byte) ([]int16) {

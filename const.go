@@ -23,7 +23,8 @@ const (
 )
 
 const (
-	cmd_takeoff = "takeoff"
+        cmd_cancel  = "cancel"
+        cmd_takeoff = "takeoff"
         cmd_land    = "land"
         cmd_stop    = "stop"
         cmd_ip      = "ip"
@@ -34,6 +35,7 @@ const (
 
 const (
 	msg_ready    = "ready to flight"
+	msg_cancel   = "cancelling current job"
 	msg_takeoff  = "taking off"
 	msg_unknown  = "unknown cmd"
 	msg_shutdown = "shutdown"

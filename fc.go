@@ -4,6 +4,7 @@ import (
 	//"fmt"
 	//"os"
 	//"log"
+	"context"
 	"strings"
 	//"path/filepath"
 	//"flag"
@@ -17,6 +18,7 @@ type FC struct {
 	cmds map[string]f_str
         level_throttle uint16
         hover_time uint16
+	cancel context.CancelFunc
 }
 
 func NewFC() *FC {
@@ -52,11 +54,12 @@ func (fc *FC) initCFG() *Cfg {
 func (fc *FC) initMsg() *FC {
     fc.cmds = map[string]f_str{
         cmd_takeoff: fc.takeoff,
+        cmd_cancel:  fc.cancel_current_job,
         cmd_land:    nil,
         cmd_stop:    nil,
         cmd_ip:      nil,
-        cmd_level:   fc.level,
-        cmd_hover:   fc.hover,
+        cmd_level:   fc.set_level,
+        cmd_hover:   fc.set_hover,
         cmd_shutdown:fc.shutdown,
     }
     return fc
@@ -74,25 +77,31 @@ func (fc *FC) proc_cmd(cmd string) {
     if found {
         fn(p)
     } else {
-        fc.unknown(str_empty)
+        fc.unknown(cmd)
     }
 }
-func (fc *FC) unknown(s string) {
-    fc.lora.send(msg_unknown)
+func (fc *FC) unknown(cmd string) {
+    fc.lora.send(msg_unknown+str_space+cmd)
 }
 func (fc *FC) shutdown(s string) {
     fc.lora.send(msg_shutdown)
     os_shutdown()
 }
+func (fc *FC) cancel_current_job(s string) {
+    fc.lora.send(msg_cancel)
+    fc.cancel()
+}
 func (fc *FC) takeoff(s string) {
     fc.lora.send(msg_takeoff)
-    go fc.msp.takeoff(fc.level_throttle, fc.hover_time)
+    ctx, cancel := context.WithCancel(context.Background())
+    go fc.msp.takeoff(ctx, fc.level_throttle, fc.hover_time)
+    fc.cancel = cancel
 }
-func (fc *FC) level(l string) {
+func (fc *FC) set_level(l string) {
     fc.cfg.seta(tag_cfg_level_throttle,l)
     fc.lora.send(tag_cfg_level_throttle+str_space+l)
 }
-func (fc *FC) hover(h string) {
+func (fc *FC) set_hover(h string) {
     fc.cfg.seta(tag_cfg_hover_time,h)
     fc.lora.send(tag_cfg_hover_time+str_space+h)
 }

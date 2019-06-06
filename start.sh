@@ -1,4 +1,7 @@
 #!/bin/bash
+
+pid=`ps -ef|grep fc_|grep -v grep|awk '{print $2}'`
+kill -9 $pid
 arch=""
 case $(uname -m) in
   i386)   arch="386" ;;
