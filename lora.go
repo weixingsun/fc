@@ -10,6 +10,7 @@ import (
 )
 //var sbuf string
 type Lora struct {
+    RF
     dev, encoder, addr string
     baudrate int
     port     io.ReadWriteCloser

@@ -7,6 +7,7 @@ case $(uname -m) in
   i386)   arch="386" ;;
   i686)   arch="386" ;;
   x86_64) arch="amd64" ;;
+  armv6l) arch="arm" ;;
   arm)    dpkg --print-architecture | grep -q "arm64" && arch="arm64" || arch="arm" ;;
 esac
 #echo $arch

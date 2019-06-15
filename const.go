@@ -48,6 +48,12 @@ const (
 )
 
 type f_str func(string)
+//type RF struct {}
+type RF interface {
+    listen(f f_str)
+    send(string)
+    close()
+}
 
 const (
         DevClass_NONE = iota
@@ -83,6 +89,13 @@ func current_dir() string {
        log.Fatal(err)
     }
     return filepath.Dir(ex)
+}
+func file_exists(path string) bool{
+    if _, err := os.Stat(path); os.IsNotExist(err) {
+        return false
+    } else {
+        return true
+    }
 }
 /*func main() {
     os_shutdown()
