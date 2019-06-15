@@ -1,4 +1,8 @@
 #!/bin/bash
+
+export GOROOT=/usr/lib/go
+export GOPATH=/home/pi/go
+
 compile() {
   ARCH=$1
   echo "Compiling for $ARCH"
