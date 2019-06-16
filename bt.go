@@ -15,27 +15,6 @@ type BT struct {
     fd     int
     buf    []byte
 }
-//type f_str func(string)
-func min2(x, y int) int {
-    if x < y {
-        return x
-    }
-    return y
-}
-func min3(x, y, z int) int {
-    a := min2(x,y)
-    if a < z {
-        return a
-    }
-    return z
-}
-
-func printAscii(s string) {
-    for i,c := range s {
-        fmt.Printf("[%d]%c(%d)\n",i,c,int(c))
-    }
-    fmt.Println()
-}
 
 func (bt *BT) send(msg string) {
     b := []byte(msg+"\n")

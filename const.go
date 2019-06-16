@@ -97,6 +97,25 @@ func file_exists(path string) bool{
         return true
     }
 }
+func min2(x, y int) int {
+    if x < y {
+        return x
+    }
+    return y
+}
+func min3(x, y, z int) int {
+    a := min2(x,y)
+    if a < z {
+        return a
+    }
+    return z
+}
+func printAscii(s string) {
+    for i,c := range s {
+        fmt.Printf("[%d]%c(%d)\n",i,c,int(c))
+    }
+    fmt.Println()
+}
+
 /*func main() {
-    os_shutdown()
 }*/
