@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export GOROOT=/usr/lib/go
-export GOPATH=/home/pi/go
+#export GOROOT=/usr/lib/go
+#export GOPATH=/home/pi/go
 
 compile() {
   ARCH=$1
@@ -27,6 +27,6 @@ find_arch() {
 #find_arch 
 #local_arch=$?
 #compile $local_arch
-compile arm64
+#compile arm64
 compile arm
-compile amd64
+#compile amd64
