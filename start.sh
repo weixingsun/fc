@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pid=`ps -ef|grep fc_|grep -v grep|awk '{print $2}'`
+pid=`ps -ef|grep fc_go|grep -v grep|grep -v start.sh|awk '{print $2}'`
 sudo kill -9 $pid
 arch=""
 case $(uname -m) in
