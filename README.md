@@ -1,5 +1,4 @@
-# This project may be considerably dangerous
-# If you do not have special domain skills for computer science
+# This project may be considerably dangerous, you would need to know UAV and programming
 
 ## Overview
 
